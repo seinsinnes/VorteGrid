@@ -2,4 +2,9 @@
 
 Forked for changes to allow building on Linux and MacOS.
 
-# [See Michael Gourlay's original code and articles](https://www.mijagourlay.com/fluid)
+
+
+[See Michael Gourlay's original code and articles](https://github.com/mijagourlay/VorteGrid)
+
+
+
