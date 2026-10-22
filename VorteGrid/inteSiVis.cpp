@@ -147,13 +147,14 @@ InteSiVis::InteSiVis( PeGaSys::Render::ApiBase * renderApi )
     mMouseButtons[0] = mMouseButtons[1] = mMouseButtons[2] = 0 ;
 
     InitialConditions(
-        1 // Vortex ring
+        //  1  // Vortex ring
         //  2   // Ball through smoke
         // 12  // Falling drop turns into vortex ring
         // 26  // Drop in a box with SDF
         // 28  // Horizontally swishing box
         // 31  // Horizontally sloshing box
         // 32  // Vertically tumbling box
+        18 // Large flame
         ) ;
 
     // Set the camera in motion.
@@ -866,7 +867,7 @@ void InteSiVis::InitialConditions( unsigned ic )
             mVortonPclGrpInfo.mPclOpWind->mWind                         = Vec3( 0.0f , 0.0f , 0.0f ) ;
 
         #if ENABLE_FIRE
-            mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim.SetCombustionTemperature( 1.0f * Particle_sAmbientTemperature + 1.5f ) ;
+            mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim.SetCombustionTemperature( 4.0f * Particle_sAmbientTemperature + 1.5f ) ;
             mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim.SetCombustionRateFactor( 2.0f ) ;
             mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim.SetSmokeTemperature( 5000.0f ) ;
             mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim.SetSmokeRateFactor( 2.0f ) ;
