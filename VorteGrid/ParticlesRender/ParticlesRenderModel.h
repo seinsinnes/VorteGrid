@@ -87,6 +87,7 @@ namespace PeGaSys
                         , mBlendMode( BLEND_MODE_ALPHA )
                         , mDensityVisibility( 1.0f )
                         , mScale( 1.0f )
+                        , mColorTint( 1.0f , 1.0f , 1.0f )
                     {}
 
                     /** Operation to fill vertex buffer from particles in group.
@@ -112,6 +113,7 @@ namespace PeGaSys
                     BlendModeE  mBlendMode                      ;
                     float       mDensityVisibility              ;
                     float       mScale                          ;
+                    Vec3        mColorTint                      ;
             } ;
 
             static const unsigned sTypeId = 'PcRM' ; ///< Type identifier for a ParticlesRenderModel scene node

@@ -78,6 +78,7 @@ void VertexBufferFiller_SetSmoke( PeGaSys::ParticlesRender::ParticlesRenderModel
     vbFiller.mOffsetToDensityInfo               = offsetof( Particle , mSmokeFraction ) ;
     vbFiller.mDensityVisibility                 = 100.0f ;
     vbFiller.mScale                             = 4.0123f ;
+    vbFiller.mColorTint                         = Vec3( 0.7f , 0.7f , 0.75f ) ;
 }
 
 
@@ -90,6 +91,7 @@ void VertexBufferFiller_SetFlame( PeGaSys::ParticlesRender::ParticlesRenderModel
     vbFiller.mDensityVisibility                 = 254.9f * 100.0f ;
     vbFiller.mBlendMode                         = PeGaSys::ParticlesRender::ParticlesRenderModel::VertexBufferFillerGeneric::BLEND_MODE_ADDITIVE ;
     vbFiller.mScale                             = 4.0f ;
+    vbFiller.mColorTint                         = Vec3( 1.0f , 0.5f , 0.1f ) ;
 }
 
 

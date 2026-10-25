@@ -143,11 +143,9 @@ void MakeDiagnosticTracerImage( PeGaSys::Image & noiseBall )
 void MakeSmokeImage( PeGaSys::Image & noiseBall )
 {
     PERF_BLOCK( MakeSmokeImage ) ;
-
-    const Vec4 translucentGray( 0.7f , 0.7f , 0.75f , 0.125f ) ; // light gray with a hint of blue.
-
+    const Vec4 translucentWhite( 1.0f , 1.0f , 1.0f , 0.125f ) ; // Tinted by mTracerSmokeVertBufFiller.mColorTint
     noiseBall.SetSize( 64 , 64 , 4 , 1 ) ;
-    ImgOpSeq_NoiseBall( noiseBall , 0.5f , translucentGray ) ;
+    ImgOpSeq_NoiseBall( noiseBall , 0.5f , translucentWhite ) ;
 }
 
 
@@ -157,11 +155,9 @@ void MakeSmokeImage( PeGaSys::Image & noiseBall )
 void MakeFlameImage( PeGaSys::Image & noiseBall )
 {
     PERF_BLOCK( MakeFlameImage ) ;
-
-    const Vec4 orange( 1.0f , 0.5f , 0.1f , 1.0f ) ; // orange.
-
+    const Vec4 white( 1.0f , 1.0f , 1.0f , 1.0f ) ; // Tinted by mTracerFlameVertBufFiller.mColorTint
     noiseBall.SetSize( 64 , 64 , 4 , 1 ) ;
-    ImgOpSeq_NoiseBall( noiseBall , 0.5f , orange ) ;
+    ImgOpSeq_NoiseBall( noiseBall , 0.5f , white ) ;
 }
 
 

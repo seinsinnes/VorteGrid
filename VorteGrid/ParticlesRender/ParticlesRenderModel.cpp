@@ -207,19 +207,23 @@ namespace PeGaSys
                 const float v0 = rDensityInfo >= 1.0f ? v0Heavy : v0Light ;
                 const float v1 = rDensityInfo >= 1.0f ? v1Heavy : v1Light ;
 
-                unsigned char colorMod = 255 ;
+ float         colorMod = 255.0f ;
                 unsigned char alphaMod = 255 ;
 
                 const float massFraction = mUseDensityForTextureCoordinate ? fabsf( rDensityInfo - 1.0f ) : fabsf( rDensityInfo ) ;
                 if( BLEND_MODE_ADDITIVE == mBlendMode )
                 {   // These are luminous particles.  Vary brightness (not opacity).
-                    colorMod = (unsigned char) Min2( 255.0f , massFraction * mDensityVisibility ) ;
+                    colorMod = Min2( 255.0f , massFraction * mDensityVisibility ) ;
                 }
                 else
                 {   // These are translucent particles.  Vary opacity (not color).
                     ASSERT( BLEND_MODE_ALPHA == mBlendMode ) ;
                     alphaMod = (unsigned char) Clamp( massFraction * mDensityVisibility , 0.0f , 255.0f ) ;
                 }
+
+                const UINT8 rMod = static_cast< UINT8 >( Clamp( colorMod * mColorTint.x , 0.0f , 255.0f ) ) ;
+                const UINT8 gMod = static_cast< UINT8 >( Clamp( colorMod * mColorTint.y , 0.0f , 255.0f ) ) ;
+                const UINT8 bMod = static_cast< UINT8 >( Clamp( colorMod * mColorTint.z , 0.0f , 255.0f ) ) ;
 
                 const size_t idxVert = iPcl * numVerticesPerParticle ;
                 const size_t offsetVert = idxVert * mVertStride ;
@@ -233,9 +237,9 @@ namespace PeGaSys
 
                 vTex[ 0 ] = 1.0f ;
                 vTex[ 1 ] = v0 ;
-                * vRed    = colorMod ;
-                * vGrn    = colorMod ;
-                * vBlu    = colorMod ;
+                * vRed    = rMod ;
+                * vGrn    = gMod ;
+                * vBlu    = bMod ;
                 * vAlp    = alphaMod ;
                 vPos->x   = ( pclPos.x + pclRight.x + pclUp.x ) ;
                 vPos->y   = ( pclPos.y + pclRight.y + pclUp.y ) ;
@@ -250,9 +254,9 @@ namespace PeGaSys
 
                 vTex[ 0 ] = 0.0f ;
                 vTex[ 1 ] = v0 ;
-                * vRed    = colorMod ;
-                * vGrn    = colorMod ;
-                * vBlu    = colorMod ;
+                * vRed    = rMod ;
+                * vGrn    = gMod ;
+                * vBlu    = bMod ;
                 * vAlp    = alphaMod ;
                 vPos->x   = ( pclPos.x - pclRight.x + pclUp.x ) ;
                 vPos->y   = ( pclPos.y - pclRight.y + pclUp.y ) ;
@@ -267,9 +271,9 @@ namespace PeGaSys
 
                 vTex[ 0 ] = 0.0f ;
                 vTex[ 1 ] = v1 ;
-                * vRed    = colorMod ;
-                * vGrn    = colorMod ;
-                * vBlu    = colorMod ;
+                * vRed    = rMod ;
+                * vGrn    = gMod ;
+                * vBlu    = bMod ;
                 * vAlp    = alphaMod ;
                 vPos->x   = ( pclPos.x - pclRight.x - pclUp.x ) ;
                 vPos->y   = ( pclPos.y - pclRight.y - pclUp.y ) ;
@@ -284,9 +288,9 @@ namespace PeGaSys
 
                 vTex[ 0 ] = 1.0f ;
                 vTex[ 1 ] = v1 ;
-                * vRed    = colorMod ;
-                * vGrn    = colorMod ;
-                * vBlu    = colorMod ;
+                * vRed    = rMod ;
+                * vGrn    = gMod ;
+                * vBlu    = bMod ;
                 * vAlp    = alphaMod ;
                 vPos->x   = ( pclPos.x + pclRight.x - pclUp.x ) ;
                 vPos->y   = ( pclPos.y + pclRight.y - pclUp.y ) ;
@@ -311,6 +315,7 @@ namespace PeGaSys
             mDensityVisibility                 = FLT_MAX ;
             mBlendMode                         = PeGaSys::ParticlesRender::ParticlesRenderModel::VertexBufferFillerGeneric::BLEND_MODE_ALPHA ;
             mScale                             = 1.0f ;
+            mColorTint                         = Vec3( 1.0f , 1.0f , 1.0f ) ;
         }
 
 

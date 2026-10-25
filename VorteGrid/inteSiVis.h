@@ -37,6 +37,8 @@
 #include "QdRender/qdParticleMaterial.h"
 #include "QdRender/qdParticleRenderer.h"
 
+#include "oscReceiver.h"
+
 #include <Particles/particleSystemManager.h>
 
 #include <VortonFluid/pclOpVortonSim.h>
@@ -156,6 +158,9 @@ class InteSiVis
         void            QdRenderSummaryDiagnosticText() ;
         void            InitializeQdRendering() ;
 // END TODO
+
+        void            ProcessOscMessages() ;
+        OscReceiver     mOscReceiver         ;
 
         static void     GlutDisplayCallback(void) ;
         static void     GlutReshapeGlutCallback(int width, int height) ;

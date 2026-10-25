@@ -127,6 +127,10 @@ public:
     const char *        GetTracerRenderingString() const ;
     const char *        GetVortonRenderingString() const ;
 
+    PeGaSys::ParticlesRender::ParticlesRenderModel::VertexBufferFillerGeneric & GetFlameVbFiller() { return mTracerFlameVertBufFiller ; }
+    PeGaSys::ParticlesRender::ParticlesRenderModel::VertexBufferFillerGeneric & GetSmokeVbFiller() { return mTracerSmokeVertBufFiller ; }
+    PeGaSys::ParticlesRender::ParticlesRenderModel::VertexBufferFillerGeneric & GetFuelVbFiller()  { return mTracerDiagDyeFuelVertBufFiller ; }
+
     PeGaSys::Render::ModelNode * GetFluidIsosurfaceModel() { return mFluidIsosurfaceModel ; }
 
     void UpdateFluidIsosurface( const UniformGrid< float > & gridOfValues ) ;

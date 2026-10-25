@@ -144,6 +144,8 @@ InteSiVis::InteSiVis( PeGaSys::Render::ApiBase * renderApi )
     mDiagnosticText  = DIAG_TEXT_SUMMARY ; // Render summary diagnostic text.
 #endif
 
+    mOscReceiver.Start( 9000 ) ;
+
     mMouseButtons[0] = mMouseButtons[1] = mMouseButtons[2] = 0 ;
 
     InitialConditions(
@@ -1973,7 +1975,137 @@ Impulsion::PhysicalObject * InteSiVis::GetPhysicalObjectInFocus()
     sMousePrevY = y ;
 }
 
+void InteSiVis::ProcessOscMessages()
+{
+    auto getFloat = []( const OscArg & a ) -> float {
+        return ( a.type == 'f' ) ? a.f : static_cast< float >( a.i ) ;
+    } ;
+    auto getInt = []( const OscArg & a ) -> int {
+        return ( a.type == 'i' ) ? a.i : static_cast< int >( a.f ) ;
+    } ;
 
+    mOscReceiver.Poll( [&]( const std::string & addr , const std::vector< OscArg > & args )
+    {
+        if( args.empty() ) return ;
+
+        VortonSim & vortonSim = mVortonPclGrpInfo.mPclOpVortonSim->mVortonSim ;
+
+        if( addr == "/flame/color" && args.size() >= 3 )
+        {
+            Vec3 rgb( Clamp( getFloat( args[0] ) , 0.0f , 1.0f )
+                    , Clamp( getFloat( args[1] ) , 0.0f , 1.0f )
+                    , Clamp( getFloat( args[2] ) , 0.0f , 1.0f ) ) ;
+            mFluidScene.GetFlameVbFiller().mColorTint = rgb ;
+
+            if( ! mQdLights.Empty() )
+            {
+                mQdLights[0].mColor = 1.2f * rgb ;
+                CopyLightsFromQdToPeGaSys() ;
+            }
+        }
+        else if( addr == "/smoke/color" && args.size() >= 3 )
+        {
+            Vec3 rgb( Clamp( getFloat( args[0] ) , 0.0f , 1.0f )
+                    , Clamp( getFloat( args[1] ) , 0.0f , 1.0f )
+                    , Clamp( getFloat( args[2] ) , 0.0f , 1.0f ) ) ;
+            mFluidScene.GetSmokeVbFiller().mColorTint = rgb ;
+        }
+        else if( addr == "/flame/density/visual" )
+        {
+            mFluidScene.GetFlameVbFiller().mDensityVisibility = Max2( 0.0f , getFloat( args[0] ) ) ;
+        }
+        else if( addr == "/smoke/density/visual" )
+        {
+            mFluidScene.GetSmokeVbFiller().mDensityVisibility = Max2( 0.0f , getFloat( args[0] ) ) ;
+        }
+        else if( addr == "/flame/density/physical" )
+        {
+            // Must be > 0.0f due to ASSERT( mDensity > 0.0f ) in Particle::GetDensity()
+            const float dens = Max2( 0.01f , getFloat( args[0] ) ) ;
+            mVortonPclGrpInfo.mPclOpEmit->mTemplate.mDensity = dens ;
+            mTracerPclGrpInfo.mPclOpEmit->mTemplate.mDensity = dens ;
+        }
+        else if( addr == "/flame/scale" )
+        {
+            mFluidScene.GetFlameVbFiller().mScale = Max2( 0.01f , getFloat( args[0] ) ) ;
+        }
+        else if( addr == "/flame/combustion_temp" )
+        {
+            #if ENABLE_FIRE
+            vortonSim.SetCombustionTemperature( Max2( 1.0f , getFloat( args[0] ) ) ) ;
+            #endif
+        }
+        else if( addr == "/flame/combustion_rate" )
+        {
+            #if ENABLE_FIRE
+            vortonSim.SetCombustionRateFactor( Max2( 0.0f , getFloat( args[0] ) ) ) ;
+            #endif
+        }
+        else if( addr == "/flame/smoke_temp" )
+        {
+            #if ENABLE_FIRE
+            vortonSim.SetSmokeTemperature( Max2( 1.0f , getFloat( args[0] ) ) ) ;
+            #endif
+        }
+        else if( addr == "/flame/smoke_rate" )
+        {
+            #if ENABLE_FIRE
+            vortonSim.SetSmokeRateFactor( Max2( 0.0f , getFloat( args[0] ) ) ) ;
+            #endif
+        }
+        else if( addr == "/flame/free_energy" )
+        {
+            #if ENABLE_FIRE
+            vortonSim.SetSpecificFreeEnergy( Max2( 0.0f , getFloat( args[0] ) ) ) ;
+            #endif
+        }
+        else if( addr == "/flame/fuel_fraction" )
+        {
+            #if ENABLE_FIRE
+            // Keep fuel + flame <= 1.0f to satisfy VortonSim::CombustAndSetMassFractions assertions
+            const float fuel  = Clamp( getFloat( args[0] ) , 0.0f , 1.0f ) ;
+            const float flame = Clamp( mVortonPclGrpInfo.mPclOpEmit->mTemplate.mFlameFraction , 0.0f , 1.0f - fuel ) ;
+            const float smoke = 1.0f - fuel - flame ;
+
+            mVortonPclGrpInfo.mPclOpEmit->mTemplate.mFuelFraction  = fuel ;
+            mVortonPclGrpInfo.mPclOpEmit->mTemplate.mFlameFraction = flame ;
+            mVortonPclGrpInfo.mPclOpEmit->mTemplate.mSmokeFraction = smoke ;
+
+            mTracerPclGrpInfo.mPclOpEmit->mTemplate.mFuelFraction  = fuel ;
+            mTracerPclGrpInfo.mPclOpEmit->mTemplate.mFlameFraction = flame ;
+            mTracerPclGrpInfo.mPclOpEmit->mTemplate.mSmokeFraction = smoke ;
+            #endif
+        }
+        else if( addr == "/flame/emit_rate" )
+        {
+            mVortonPclGrpInfo.mPclOpEmit->mEmitRate = Max2( 0.0f , getFloat( args[0] ) ) ;
+            if( args.size() >= 2 )
+            {
+                mTracerPclGrpInfo.mPclOpEmit->mEmitRate = Max2( 0.0f , getFloat( args[1] ) ) ;
+            }
+        }
+        else if( addr == "/flame/spread" && args.size() >= 3 )
+        {
+            Vec3 spread( Max2( 0.01f , getFloat( args[0] ) )
+                       , Max2( 0.01f , getFloat( args[1] ) )
+                       , Max2( 0.01f , getFloat( args[2] ) ) ) ;
+            mVortonPclGrpInfo.mPclOpEmit->mSpread.mPosition = spread ;
+            mTracerPclGrpInfo.mPclOpEmit->mSpread.mPosition = spread ;
+        }
+        else if( addr == "/flame/wind" && args.size() >= 3 )
+        {
+            Vec3 wind( getFloat( args[0] ) , getFloat( args[1] ) , getFloat( args[2] ) ) ;
+            mVortonPclGrpInfo.mPclOpWind->mWind = wind ;
+            mTracerPclGrpInfo.mPclOpWind->mWind = wind ;
+        }
+        else if( addr == "/flame/lifetime" )
+        {
+            const int ageMax = Max2( 1 , getInt( args[0] ) ) ;
+            mVortonPclGrpInfo.mPclOpKillAge->mAgeMax = ageMax ;
+            mTracerPclGrpInfo.mPclOpKillAge->mAgeMax = ageMax ;
+        }
+    } ) ;
+}
 
 
 /** Function to run to handle "idle" event, that is, when not doing anything else.
@@ -2015,6 +2147,7 @@ void InteSiVis::Idle()
     mTimeStepMin = Min2( mTimeStepMin , mTimeStep ) ;
     mTimeStepMax = Max2( mTimeStepMax , mTimeStep ) ;
 
+    ProcessOscMessages() ;
     UpdateParticleSystems() ;
 
 #if USE_TBB
